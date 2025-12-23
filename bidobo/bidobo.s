@@ -2,194 +2,188 @@
 
 #include "textflag.h"
 
-// func blockSortUpwardBy8ElementsOf4Bytes(T []uint32, i int, gap int) int
+// func blockSortUpwardBy8ElementsOf4Bytes(T []uint32, end int, gap int) int
 // Requires: AVX, AVX2
 TEXT ·blockSortUpwardBy8ElementsOf4Bytes(SB), NOSPLIT, $0-48
 	MOVQ T_base+0(FP), AX
-	MOVQ T_len+8(FP), CX
-	MOVQ i+24(FP), DX
-	MOVQ gap+32(FP), BX
-	LEAQ (AX)(BX*4), SI
-	LEAQ (SI)(BX*4), BX
-	SUBQ $0x08, CX
-	JMP  before_end_of_loop_upward
+	MOVQ gap+32(FP), DX
+	LEAQ (AX)(DX*4), CX
+	LEAQ (CX)(DX*4), DX
+	MOVQ end+24(FP), BX
+	XORQ SI, SI
+	JMP  before_end_of_loop
 
-loop_upward:
-	VMOVDQU (AX)(DX*4), Y0
-	VMOVDQU (SI)(DX*4), Y1
-	VMOVDQU (BX)(DX*4), Y2
+loop:
+	VMOVDQU (AX)(SI*4), Y0
+	VMOVDQU (CX)(SI*4), Y1
+	VMOVDQU (DX)(SI*4), Y2
 	VPMINUD Y1, Y2, Y3
 	VPMAXUD Y1, Y2, Y2
 	VMOVDQU Y3, Y1
 	VPMINUD Y0, Y1, Y3
 	VPMAXUD Y0, Y1, Y1
 	VMOVDQU Y3, Y0
-	VMOVDQU Y0, (AX)(DX*4)
-	VMOVDQU Y1, (SI)(DX*4)
-	VMOVDQU Y2, (BX)(DX*4)
-	ADDQ    $0x08, DX
+	VMOVDQU Y0, (AX)(SI*4)
+	VMOVDQU Y1, (CX)(SI*4)
+	VMOVDQU Y2, (DX)(SI*4)
+	ADDQ    $0x08, SI
 
-before_end_of_loop_upward:
-	CMPQ DX, CX
-	JLE  loop_upward
-	MOVQ DX, ret+40(FP)
+before_end_of_loop:
+	CMPQ SI, BX
+	JL   loop
+	MOVQ SI, ret+40(FP)
 	RET
 
-// func blockSortDownwardBy8ElementsOf4Bytes(T []uint32, i int, gap int) int
+// func blockSortDownwardBy8ElementsOf4Bytes(T []uint32, end int, gap int) int
 // Requires: AVX, AVX2
 TEXT ·blockSortDownwardBy8ElementsOf4Bytes(SB), NOSPLIT, $0-48
 	MOVQ T_base+0(FP), AX
-	MOVQ i+24(FP), CX
 	MOVQ gap+32(FP), DX
-	LEAQ (AX)(DX*4), BX
-	LEAQ (BX)(DX*4), DX
-	ADDQ $0x08, CX
-	JMP  before_end_of_loop_downward
+	LEAQ (AX)(DX*4), CX
+	LEAQ (CX)(DX*4), DX
+	MOVQ end+24(FP), BX
+	JMP  before_end_of_loop
 
-loop_downward:
-	VMOVDQU (AX)(CX*4), Y0
-	VMOVDQU (BX)(CX*4), Y1
-	VMOVDQU (DX)(CX*4), Y2
+loop:
+	VMOVDQU (AX)(BX*4), Y0
+	VMOVDQU (CX)(BX*4), Y1
+	VMOVDQU (DX)(BX*4), Y2
 	VPMINUD Y1, Y2, Y3
 	VPMAXUD Y1, Y2, Y2
 	VMOVDQU Y3, Y1
 	VPMINUD Y0, Y1, Y3
 	VPMAXUD Y0, Y1, Y1
 	VMOVDQU Y3, Y0
-	VMOVDQU Y0, (AX)(CX*4)
-	VMOVDQU Y1, (BX)(CX*4)
-	VMOVDQU Y2, (DX)(CX*4)
+	VMOVDQU Y0, (AX)(BX*4)
+	VMOVDQU Y1, (CX)(BX*4)
+	VMOVDQU Y2, (DX)(BX*4)
 
-before_end_of_loop_downward:
-	SUBQ $0x08, CX
-	JGE  loop_downward
-	MOVQ CX, ret+40(FP)
+before_end_of_loop:
+	SUBQ $0x08, BX
+	JGE  loop
+	MOVQ BX, ret+40(FP)
 	RET
 
-// func blockSortUpwardBy4ElementsOf4Bytes(T []uint32, i int, gap int) int
+// func blockSortUpwardBy4ElementsOf4Bytes(T []uint32, end int, gap int) int
 // Requires: AVX
 TEXT ·blockSortUpwardBy4ElementsOf4Bytes(SB), NOSPLIT, $0-48
 	MOVQ T_base+0(FP), AX
-	MOVQ T_len+8(FP), CX
-	MOVQ i+24(FP), DX
-	MOVQ gap+32(FP), BX
-	LEAQ (AX)(BX*4), SI
-	LEAQ (SI)(BX*4), BX
-	SUBQ $0x04, CX
-	JMP  before_end_of_loop_upward
+	MOVQ gap+32(FP), DX
+	LEAQ (AX)(DX*4), CX
+	LEAQ (CX)(DX*4), DX
+	MOVQ end+24(FP), BX
+	XORQ SI, SI
+	JMP  before_end_of_loop
 
-loop_upward:
-	VMOVDQU (AX)(DX*4), X0
-	VMOVDQU (SI)(DX*4), X1
-	VMOVDQU (BX)(DX*4), X2
+loop:
+	VMOVDQU (AX)(SI*4), X0
+	VMOVDQU (CX)(SI*4), X1
+	VMOVDQU (DX)(SI*4), X2
 	VPMINUD X1, X2, X3
 	VPMAXUD X1, X2, X2
 	VMOVDQU X3, X1
 	VPMINUD X0, X1, X3
 	VPMAXUD X0, X1, X1
 	VMOVDQU X3, X0
-	VMOVDQU X0, (AX)(DX*4)
-	VMOVDQU X1, (SI)(DX*4)
-	VMOVDQU X2, (BX)(DX*4)
-	ADDQ    $0x04, DX
+	VMOVDQU X0, (AX)(SI*4)
+	VMOVDQU X1, (CX)(SI*4)
+	VMOVDQU X2, (DX)(SI*4)
+	ADDQ    $0x04, SI
 
-before_end_of_loop_upward:
-	CMPQ DX, CX
-	JLE  loop_upward
-	MOVQ DX, ret+40(FP)
+before_end_of_loop:
+	CMPQ SI, BX
+	JL   loop
+	MOVQ SI, ret+40(FP)
 	RET
 
-// func blockSortDownwardBy4ElementsOf4Bytes(T []uint32, i int, gap int) int
+// func blockSortDownwardBy4ElementsOf4Bytes(T []uint32, end int, gap int) int
 // Requires: AVX
 TEXT ·blockSortDownwardBy4ElementsOf4Bytes(SB), NOSPLIT, $0-48
 	MOVQ T_base+0(FP), AX
-	MOVQ i+24(FP), CX
 	MOVQ gap+32(FP), DX
-	LEAQ (AX)(DX*4), BX
-	LEAQ (BX)(DX*4), DX
-	ADDQ $0x04, CX
-	JMP  before_end_of_loop_downward
+	LEAQ (AX)(DX*4), CX
+	LEAQ (CX)(DX*4), DX
+	MOVQ end+24(FP), BX
+	JMP  before_end_of_loop
 
-loop_downward:
-	VMOVDQU (AX)(CX*4), X0
-	VMOVDQU (BX)(CX*4), X1
-	VMOVDQU (DX)(CX*4), X2
+loop:
+	VMOVDQU (AX)(BX*4), X0
+	VMOVDQU (CX)(BX*4), X1
+	VMOVDQU (DX)(BX*4), X2
 	VPMINUD X1, X2, X3
 	VPMAXUD X1, X2, X2
 	VMOVDQU X3, X1
 	VPMINUD X0, X1, X3
 	VPMAXUD X0, X1, X1
 	VMOVDQU X3, X0
-	VMOVDQU X0, (AX)(CX*4)
-	VMOVDQU X1, (BX)(CX*4)
-	VMOVDQU X2, (DX)(CX*4)
+	VMOVDQU X0, (AX)(BX*4)
+	VMOVDQU X1, (CX)(BX*4)
+	VMOVDQU X2, (DX)(BX*4)
 
-before_end_of_loop_downward:
-	SUBQ $0x04, CX
-	JGE  loop_downward
-	MOVQ CX, ret+40(FP)
+before_end_of_loop:
+	SUBQ $0x04, BX
+	JGE  loop
+	MOVQ BX, ret+40(FP)
 	RET
 
-// func blockSortUpwardBy4ElementsOf8Bytes(T []uint64, i int, gap int) int
+// func blockSortUpwardBy4ElementsOf8Bytes(T []uint64, end int, gap int) int
 // Requires: AVX, AVX512F, AVX512VL
 TEXT ·blockSortUpwardBy4ElementsOf8Bytes(SB), NOSPLIT, $0-48
 	MOVQ T_base+0(FP), AX
-	MOVQ T_len+8(FP), CX
-	MOVQ i+24(FP), DX
-	MOVQ gap+32(FP), BX
-	LEAQ (AX)(BX*8), SI
-	LEAQ (SI)(BX*8), BX
-	SUBQ $0x04, CX
-	JMP  before_end_of_loop_upward
+	MOVQ gap+32(FP), DX
+	LEAQ (AX)(DX*8), CX
+	LEAQ (CX)(DX*8), DX
+	MOVQ end+24(FP), BX
+	XORQ SI, SI
+	JMP  before_end_of_loop
 
-loop_upward:
-	VMOVDQU (AX)(DX*8), Y0
-	VMOVDQU (SI)(DX*8), Y1
-	VMOVDQU (BX)(DX*8), Y2
+loop:
+	VMOVDQU (AX)(SI*8), Y0
+	VMOVDQU (CX)(SI*8), Y1
+	VMOVDQU (DX)(SI*8), Y2
 	VPMINUQ Y1, Y2, Y3
 	VPMAXUQ Y1, Y2, Y2
 	VMOVDQU Y3, Y1
 	VPMINUQ Y0, Y1, Y3
 	VPMAXUQ Y0, Y1, Y1
 	VMOVDQU Y3, Y0
-	VMOVDQU Y0, (AX)(DX*8)
-	VMOVDQU Y1, (SI)(DX*8)
-	VMOVDQU Y2, (BX)(DX*8)
-	ADDQ    $0x04, DX
+	VMOVDQU Y0, (AX)(SI*8)
+	VMOVDQU Y1, (CX)(SI*8)
+	VMOVDQU Y2, (DX)(SI*8)
+	ADDQ    $0x04, SI
 
-before_end_of_loop_upward:
-	CMPQ DX, CX
-	JLE  loop_upward
-	MOVQ DX, ret+40(FP)
+before_end_of_loop:
+	CMPQ SI, BX
+	JL   loop
+	MOVQ SI, ret+40(FP)
 	RET
 
-// func blockSortDownwardBy4ElementsOf8Bytes(T []uint64, i int, gap int) int
+// func blockSortDownwardBy4ElementsOf8Bytes(T []uint64, end int, gap int) int
 // Requires: AVX, AVX512F, AVX512VL
 TEXT ·blockSortDownwardBy4ElementsOf8Bytes(SB), NOSPLIT, $0-48
 	MOVQ T_base+0(FP), AX
-	MOVQ i+24(FP), CX
 	MOVQ gap+32(FP), DX
-	LEAQ (AX)(DX*8), BX
-	LEAQ (BX)(DX*8), DX
-	ADDQ $0x04, CX
-	JMP  before_end_of_loop_downward
+	LEAQ (AX)(DX*8), CX
+	LEAQ (CX)(DX*8), DX
+	MOVQ end+24(FP), BX
+	JMP  before_end_of_loop
 
-loop_downward:
-	VMOVDQU (AX)(CX*8), Y0
-	VMOVDQU (BX)(CX*8), Y1
-	VMOVDQU (DX)(CX*8), Y2
+loop:
+	VMOVDQU (AX)(BX*8), Y0
+	VMOVDQU (CX)(BX*8), Y1
+	VMOVDQU (DX)(BX*8), Y2
 	VPMINUQ Y1, Y2, Y3
 	VPMAXUQ Y1, Y2, Y2
 	VMOVDQU Y3, Y1
 	VPMINUQ Y0, Y1, Y3
 	VPMAXUQ Y0, Y1, Y1
 	VMOVDQU Y3, Y0
-	VMOVDQU Y0, (AX)(CX*8)
-	VMOVDQU Y1, (BX)(CX*8)
-	VMOVDQU Y2, (DX)(CX*8)
+	VMOVDQU Y0, (AX)(BX*8)
+	VMOVDQU Y1, (CX)(BX*8)
+	VMOVDQU Y2, (DX)(BX*8)
 
-before_end_of_loop_downward:
-	SUBQ $0x04, CX
-	JGE  loop_downward
-	MOVQ CX, ret+40(FP)
+before_end_of_loop:
+	SUBQ $0x04, BX
+	JGE  loop
+	MOVQ BX, ret+40(FP)
 	RET

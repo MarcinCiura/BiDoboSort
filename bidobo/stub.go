@@ -2,14 +2,14 @@
 
 package bidobo
 
-func blockSortUpwardBy8ElementsOf4Bytes(T []uint32, i int, gap int) int
+func blockSortUpwardBy8ElementsOf4Bytes(T []uint32, end int, gap int) int
 
-func blockSortDownwardBy8ElementsOf4Bytes(T []uint32, i int, gap int) int
+func blockSortDownwardBy8ElementsOf4Bytes(T []uint32, end int, gap int) int
 
-func blockSortUpwardBy4ElementsOf4Bytes(T []uint32, i int, gap int) int
+func blockSortUpwardBy4ElementsOf4Bytes(T []uint32, end int, gap int) int
 
-func blockSortDownwardBy4ElementsOf4Bytes(T []uint32, i int, gap int) int
+func blockSortDownwardBy4ElementsOf4Bytes(T []uint32, end int, gap int) int
 
-func blockSortUpwardBy4ElementsOf8Bytes(T []uint64, i int, gap int) int
+func blockSortUpwardBy4ElementsOf8Bytes(T []uint64, end int, gap int) int
 
-func blockSortDownwardBy4ElementsOf8Bytes(T []uint64, i int, gap int) int
+func blockSortDownwardBy4ElementsOf8Bytes(T []uint64, end int, gap int) int

@@ -37,6 +37,18 @@ func sort3BlocksOf256Bits(
 	VMOVDQU(vc, Mem{Base: pc, Index: i, Scale: wordSizeBytes})
 }
 
+func initializeVariables(
+	wordSizeBytes uint8) (
+	pa Register, pb Register, pc Register, end Register) {
+	pa = Load(Param("T").Base(), GP64())
+	pb, pc = GP64(), GP64()
+	gap := Load(Param("gap"), GP64())
+	LEAQ(Mem{Base: pa, Index: gap, Scale: wordSizeBytes}, pb)
+	LEAQ(Mem{Base: pb, Index: gap, Scale: wordSizeBytes}, pc)
+	end = Load(Param("end"), GP64())
+	return
+}
+
 func generateBlockSortUpward(
 	nElements uint64, wordSizeBytes uint8,
 	MM func() VecVirtual,
@@ -44,24 +56,19 @@ func generateBlockSortUpward(
 	TEXT(
 		fmt.Sprintf("blockSortUpwardBy%dElementsOf%dBytes", nElements, wordSizeBytes),
 		NOSPLIT,
-		fmt.Sprintf("func(T []uint%d, i, gap int) int", 8*wordSizeBytes))
-	pa := Load(Param("T").Base(), GP64())
-	TLen := Load(Param("T").Len(), GP64())
-	i := Load(Param("i"), GP64())
-	gap := Load(Param("gap"), GP64())
+		fmt.Sprintf("func(T []uint%d, end, gap int) int", 8*wordSizeBytes))
+	pa, pb, pc, end := initializeVariables(wordSizeBytes)
+	i := GP64()
+	XORQ(i, i)
+	JMP(LabelRef("before_end_of_loop"))
 
-	pb, pc := GP64(), GP64()
-	LEAQ(Mem{Base: pa, Index: gap, Scale: wordSizeBytes}, pb)
-	LEAQ(Mem{Base: pb, Index: gap, Scale: wordSizeBytes}, pc)
-	SUBQ(Imm(nElements), TLen)
-
-	JMP(LabelRef("before_end_of_loop_upward"))
-	Label("loop_upward")
+	Label("loop")
 	sort3BlocksOf256Bits(wordSizeBytes, pa, pb, pc, i, MM, VPMIN, VPMAX)
 	ADDQ(Imm(nElements), i)
-	Label("before_end_of_loop_upward")
-	CMPQ(i, TLen)
-	JLE(LabelRef("loop_upward"))
+
+	Label("before_end_of_loop")
+	CMPQ(i, end)
+	JL(LabelRef("loop"))
 
 	Store(i, ReturnIndex(0))
 	RET()
@@ -74,22 +81,16 @@ func generateBlockSortDownward(
 	TEXT(
 		fmt.Sprintf("blockSortDownwardBy%dElementsOf%dBytes", nElements, wordSizeBytes),
 		NOSPLIT,
-		fmt.Sprintf("func(T []uint%d, i, gap int) int", 8*wordSizeBytes))
-	pa := Load(Param("T").Base(), GP64())
-	i := Load(Param("i"), GP64())
-	gap := Load(Param("gap"), GP64())
+		fmt.Sprintf("func(T []uint%d, end, gap int) int", 8*wordSizeBytes))
+	pa, pb, pc, i := initializeVariables(wordSizeBytes)
+	JMP(LabelRef("before_end_of_loop"))
 
-	pb, pc := GP64(), GP64()
-	LEAQ(Mem{Base: pa, Index: gap, Scale: wordSizeBytes}, pb)
-	LEAQ(Mem{Base: pb, Index: gap, Scale: wordSizeBytes}, pc)
-
-	ADDQ(Imm(nElements), i)
-	JMP(LabelRef("before_end_of_loop_downward"))
-	Label("loop_downward")
+	Label("loop")
 	sort3BlocksOf256Bits(wordSizeBytes, pa, pb, pc, i, MM, VPMIN, VPMAX)
-	Label("before_end_of_loop_downward")
+
+	Label("before_end_of_loop")
 	SUBQ(Imm(nElements), i)
-	JGE(LabelRef("loop_downward"))
+	JGE(LabelRef("loop"))
 
 	Store(i, ReturnIndex(0))
 	RET()

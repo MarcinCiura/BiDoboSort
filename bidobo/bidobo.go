@@ -1,8 +1,6 @@
 //go:generate go run asm.go -out bidobo.s -stubs stub.go
 package bidobo
 
-import "unsafe"
-
 type Direction int
 
 const (
@@ -11,7 +9,6 @@ const (
 )
 
 func BiDoboSort[E uint32 | uint64](T []E, h []int) {
-	nElements := 32 / int(unsafe.Sizeof(T[0]))
 	i := 0
 	for h[i+1] < len(T) {
 		i++
@@ -20,50 +17,58 @@ func BiDoboSort[E uint32 | uint64](T []E, h []int) {
 	for ; i > 0; i-- {
 		switch dir {
 		case UPWARD:
-			blockSortUpward(T, 0, h[i])
+			blockSortUpward(T, len(T)-2*h[i], h[i])
 		case DOWNWARD:
-			blockSortDownward(T, len(T)-2*h[i]-nElements, h[i])
+			blockSortDownward(T, len(T)-2*h[i], h[i])
 		}
 		dir = -dir
 	}
 }
 
-func blockSortUpward[E uint32 | uint64](T []E, i, gap int) {
+func blockSortUpward[E uint32 | uint64](T []E, end, gap int) {
+	i := 0
 	switch data := any(T).(type) {
 	case []uint32:
 		switch {
 		case gap >= 8:
-			i = blockSortUpwardBy8ElementsOf4Bytes(data, i, gap)
+			i = blockSortUpwardBy8ElementsOf4Bytes(data, end, gap)
 		case gap >= 4:
-			i = blockSortUpwardBy4ElementsOf4Bytes(data, i, gap)
+			i = blockSortUpwardBy4ElementsOf4Bytes(data, end, gap)
 		}
 	case []uint64:
 		if gap >= 4 {
-			i = blockSortUpwardBy4ElementsOf8Bytes(data, i, gap)
+			i = blockSortUpwardBy4ElementsOf8Bytes(data, end, gap)
 		}
 	}
-	for ; i+gap < len(T); i++ {
+	for ; i < end; i++ {
 		sortTwoElements(&T[i+gap], &T[i+2*gap])
 		sortTwoElements(&T[i], &T[i+gap])
 	}
 }
 
-func blockSortDownward[E uint32 | uint64](T []E, i, gap int) int {
+func blockSortDownward[E uint32 | uint64](T []E, i, gap int) {
 	switch data := any(T).(type) {
 	case []uint32:
-		if gap >= 8 {
+		switch {
+		case gap >= 8:
 			i = blockSortDownwardBy8ElementsOf4Bytes(data, i, gap)
+		case gap >= 4:
+			i = blockSortDownwardBy4ElementsOf4Bytes(data, i, gap)
+		default:
+			i--
 		}
 	case []uint64:
-		if gap >= 4 {
+		switch {
+		case gap >= 4:
 			i = blockSortDownwardBy4ElementsOf8Bytes(data, i, gap)
+		default:
+			i--
 		}
 	}
 	for ; i >= 0; i-- {
 		sortTwoElements(&T[i], &T[i+gap])
 		sortTwoElements(&T[i+gap], &T[i+2*gap])
 	}
-	return i
 }
 
 func sortTwoElements[E uint32 | uint64](a, b *E) {
