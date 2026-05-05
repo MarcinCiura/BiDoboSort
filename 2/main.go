@@ -10,14 +10,14 @@ import (
 
 func main() {
 	N := 100_000
-	for h1 := 2; h1 <= 8; h1++ {
-		for h2 := 2; h2 <= 4*h1; h2++ {
-			for h3 := 2; h3 <= 4*h2; h3++ {
-				for h4 := 2; h4 <= 4*h3; h4++ {
-					for p := 1.25; p < 1.4; p += 0.001 {
+	for h1 := 4; h1 <= 8; h1++ {
+		for h2 := 4; h2 <= 4*h1; h2++ {
+			for h3 := 4; h3 <= 4*h2; h3++ {
+				for h4 := 4; h4 <= 4*h3; h4++ {
+					for p := 1.25; p < 1.6; p += 0.001 {
 						h := []int{1, h1, h2, h3, h4}
 						for h[len(h)-1] < N {
-							h = append(h, int(p*float64(h[len(h)-1])))
+							h = append(h, int(1+p*float64(h[len(h)-1])))
 						}
 						T := []uint32{}
 						for i := range N {

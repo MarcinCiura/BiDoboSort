@@ -10,7 +10,7 @@ const (
 
 func BiDoboSort[E uint32 | uint64](T []E, h []int) {
 	i := 0
-	for h[i+1] < len(T) {
+	for i+1 < len(h) && h[i+1] < len(T) {
 		i++
 	}
 	dir := UPWARD
