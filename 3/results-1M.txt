@@ -1,0 +1,4 @@
+Base gaps: [1 5 4 4 8 13] ratio: 1.549000  Total time:      mean 17.211351 ms, stddev 0.457108 ms  BiDoboSort time: mean 8.767710 ms, stddev 0.345372 ms  InsertSort time: mean 8.443641 ms, stddev 0.266396 ms
+Base gaps: [1 4 4 5 8 13] ratio: 1.549000  Total time:      mean 17.743214 ms, stddev 0.435428 ms  BiDoboSort time: mean 8.750189 ms, stddev 0.330886 ms  InsertSort time: mean 8.993025 ms, stddev 0.234331 ms
+Base gaps: [1 4 16 5 8 12] ratio: 1.495000  Total time:      mean 16.776409 ms, stddev 0.563678 ms  BiDoboSort time: mean 9.302340 ms, stddev 0.440289 ms  InsertSort time: mean 7.474069 ms, stddev 0.249095 ms
+Base gaps: [1 4 5 8 12 16] ratio: 1.495000  Total time:      mean 17.602607 ms, stddev 0.994992 ms  BiDoboSort time: mean 9.068547 ms, stddev 0.683727 ms  InsertSort time: mean 8.534060 ms, stddev 0.416130 ms
